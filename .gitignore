@@ -1,0 +1,4 @@
+*.sw[op]
+main
+*.o
+*.hi
