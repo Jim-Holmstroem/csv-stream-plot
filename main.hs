@@ -52,7 +52,7 @@ draw readings = do
 
     return $ mconcat $ map renderVariable readReadings
         where renderVariable readReadingsVariable = graph readReadingsVariable <> start readReadingsVariable
-              graph readReadingsVariable = color white $ line $ zip [-400,-397..] (take 512 readReadingsVariable)
+              graph readReadingsVariable = color white $ line $ zip [-400,-395..] (take 512 readReadingsVariable)
               start [] = mempty
               start xv@(x:_) = translate (-400) x $ color red $ circle lastVariance
                 where lastVariance = sqrt $ (sum $ map (\x->(x-lastMean)^2) lastReadings) / (max 1 lastLength)
