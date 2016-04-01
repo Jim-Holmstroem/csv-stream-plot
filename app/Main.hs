@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+module Main where
+
 import Control.Applicative
 import Control.Concurrent (threadDelay, forkIO)
 import Control.Concurrent.MVar
@@ -17,6 +19,10 @@ import Debug.Trace
 
 -- TODO why is there extra newlines after each new line from /dev/ttyUSB0 ? "it wasnt there yesterday"..
 -- TODO make it at least drop the row if it changes in length
+
+-- TODO everything but a EDSL statement like ``main = plot $ DefaultPlot $ map x [0..5]``
+-- the rest is moved out into the core
+
 
 type Readings = [[Float]]
 
@@ -40,7 +46,7 @@ draw :: MVar Readings -> IO Picture
 draw readings = do
     readReadings <- readMVar readings
 
-    return $ Pictures $ renderVariable <$> readReadings
+    return $ pictures $ renderVariable <$> readReadings
         where renderVariable readReadingsVariable = graph readReadingsVariable <> start readReadingsVariable
               graph readReadingsVariable = color white $ line $ zip [-400,-395..] (take 512 readReadingsVariable)
               start [] = mempty
