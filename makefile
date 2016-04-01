@@ -1,5 +1,5 @@
 main: main.hs
-	ghc --make -threaded main.hs
+	ghc --make -optc-O3 -optc-ffast-math -threaded main.hs
 
 run: main
 	./main < /dev/ttyUSB0
