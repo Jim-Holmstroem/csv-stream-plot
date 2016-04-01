@@ -1,1 +1,9 @@
+# vim
+*.sw[op]
+
+# haskell
+*.o
+*.hi
+
+# stack
 .stack-work
