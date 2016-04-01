@@ -1,6 +1,9 @@
 main: main.hs
 	ghc --make -optc-O3 -optc-ffast-math -threaded main.hs
 
+clean:
+	rm *.o *.hi
+
 run: main
 	./main < /dev/ttyUSB0
 

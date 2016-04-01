@@ -10,22 +10,15 @@ import Graphics.Gloss.Interface.IO.Game
 import Text.Read
 import Data.List.Split
 
-
 import Debug.Trace
-
 
 -- write down libraries (and versions) used
 -- gloss, split
 
--- use TVar?
--- Gloss.Interface.IO.Simulate instead?
-
--- TODO even more restrictive parsing
--- TODO why is there extra newlines after each new line from /dev/ttyUSB0 ? it wasnt there yesterday..
+-- TODO why is there extra newlines after each new line from /dev/ttyUSB0 ? "it wasnt there yesterday"..
 -- TODO make it at least drop the row if it changes in length
 
 type Readings = [[Float]]
-
 
 readData :: MVar Readings -> IO ()
 readData readings = do
@@ -47,7 +40,7 @@ draw :: MVar Readings -> IO Picture
 draw readings = do
     readReadings <- readMVar readings
 
-    return $ mconcat $ map renderVariable readReadings
+    return $ Pictures $ renderVariable <$> readReadings
         where renderVariable readReadingsVariable = graph readReadingsVariable <> start readReadingsVariable
               graph readReadingsVariable = color white $ line $ zip [-400,-395..] (take 512 readReadingsVariable)
               start [] = mempty

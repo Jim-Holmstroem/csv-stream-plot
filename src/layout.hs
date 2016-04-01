@@ -106,7 +106,13 @@ instance (Arbitrary a, Arbitrary b) => Arbitrary (Div a b) where
     arbitrary = Div <$> arbitrary <*> arbitrary
 
 
+-- TODO use those derivative of a list things that is used in xmonad for window switching
+-- TogglePlot Key [Plot], toggle between plots on keys
+-- KeyPlot (Map Key Plot), switch between plots on keys
 
+class Plot p where
+    render :: p -> Picture
+    append :: [Double] -> p -> p
 
 
 
