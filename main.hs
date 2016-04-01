@@ -22,7 +22,7 @@ import Debug.Trace
 
 -- TODO even more restrictive parsing
 -- TODO why is there extra newlines after each new line from /dev/ttyUSB0 ? it wasnt there yesterday..
-
+-- TODO make it at least drop the row if it changes in length
 
 type Readings = [[Float]]
 
