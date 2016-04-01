@@ -1,2 +1,2 @@
-# StreamPlotter
-Simple Plotting library to render streaming CSV data
+# csv-stream-plot
+Plot EDSL for data streamed in CSV format
