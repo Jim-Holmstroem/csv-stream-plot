@@ -27,9 +27,6 @@ import Debug.Trace
 type Readings = [[Float]]
 
 
-
-
-
 readData :: MVar Readings -> IO ()
 readData readings = do
     input <- getContents
