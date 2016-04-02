@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Core ( plot
+module Core ( runPlot
             , module Plot
-            , module Variable
+            , module Expression
 ) where
 
 import Plot
-import Variable
+import Expression
 
 import Control.Applicative
 import Control.Concurrent (threadDelay, forkIO)
@@ -69,8 +69,8 @@ updateHandler :: Float -> world -> IO world
 updateHandler dt w = return w
 
 
-plot :: (Plot p) => p -> IO ()
-plot p = do
+runPlot :: (Plot p) => p -> IO ()
+runPlot p = do
     readings <- newMVar []
 
     void $ forkIO $ readData readings

@@ -1,4 +1,3 @@
 import Core
 
-
-main = plot $ EmptyPlot
+main = runPlot EmptyPlot

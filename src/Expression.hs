@@ -1,7 +1,9 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
-module Variable ( Var(..)
+module Expression ( Expr(..)
+                , expr
                 , x0
                 , x1
                 , x2
@@ -33,13 +35,17 @@ module Variable ( Var(..)
                 , Function(..)
 ) where
 
-class Var v where
-    grab :: v -> [Double] -> Double
+data Evaluable = forall e . (Expr e) => MkEvaluable e
+expr :: (Expr e) => e -> Evaluable
+expr = MkEvaluable
+
+class Expr e where
+    eval :: e -> [Double] -> Double
 
 data Component = Component Int
     deriving (Show, Eq)
 
-x0, x1, x2, x3 :: Component
+x0, x1, x2, x3, x4, x5, x6, x7, x8, x9 :: Component
 x0 = Component 0
 x1 = Component 1
 x2 = Component 2
@@ -83,7 +89,6 @@ infixr 0 :$:
 type f :$: a = a  -- A bit weird but here for completness purposes
 
 
--- TODO check what operator order of these
 infixl 6 .+
 a .+ b = Add a b
 infixl 6 .-
@@ -96,33 +101,36 @@ a ./ b = Div a b
 infixr 0 .$
 f .$ a = Function f a
 
-instance (Var a, Var b) => Var (Add a b) where
-    grab (Add a b) rows = (+) grabA grabB
-        where grabA = grab a rows
-              grabB = grab b rows
 
-instance (Var a, Var b) => Var (Sub a b) where
-    grab (Sub a b) rows = (-) grabA grabB
-        where grabA = grab a rows
-              grabB = grab b rows
+instance (Expr a, Expr b) => Expr (Add a b) where
+    eval (Add a b) rows = (+) grabA grabB
+        where grabA = eval a rows
+              grabB = eval b rows
 
-instance (Var a, Var b) => Var (Mul a b) where
-    grab (Mul a b) rows = (*) grabA grabB
-        where grabA = grab a rows  -- TODO Remove the repeated code here with something like (*) <$> a b (and make Variable applicative or whutever)
-              grabB = grab b rows
+instance (Expr a, Expr b) => Expr (Sub a b) where
+    eval (Sub a b) rows = (-) grabA grabB
+        where grabA = eval a rows
+              grabB = eval b rows
 
-instance (Var a, Var b) => Var (Div a b) where
-    grab (Div a b) rows = (/) grabA grabB
-        where grabA = grab a rows
-              grabB = grab b rows
+instance (Expr a, Expr b) => Expr (Mul a b) where
+    eval (Mul a b) rows = (*) grabA grabB
+        where grabA = eval a rows  -- TODO Remove the repeated code here with something like (*) <$> a b (and make Expr applicative or whutever)
+              grabB = eval b rows
 
-instance (Var a) => Var (Function a) where
-    grab (Function f a) rows = f $ grab a rows
+instance (Expr a, Expr b) => Expr (Div a b) where
+    eval (Div a b) rows = (/) grabA grabB
+        where grabA = eval a rows
+              grabB = eval b rows
 
-instance Var Constant where
-    grab (Constant f) _ = f
-instance Var Double where
-    grab f _ = f
+instance (Expr a) => Expr (Function a) where
+    eval (Function f a) rows = f $ eval a rows
 
-instance Var Component where
-    grab (Component n) rows = rows !! n
+instance Expr Constant where
+    eval (Constant f) _ = f
+instance Expr Double where
+    eval f _ = f
+
+instance Expr Component where
+    eval (Component n) rows = rows !! n
+
+
