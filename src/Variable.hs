@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module Variable ( Var
+module Variable ( Var(..)
                 , x0
                 , x1
                 , x2
@@ -17,10 +17,12 @@ module Variable ( Var
                 , (.-)
                 , (.*)
                 , (./)
+                , (.$)
                 , (:+:)
                 , (:-:)
                 , (:*:)
                 , (:/:)
+                , (:$:)
                 , Component(..)
                 , componentId
                 , Constant(..)
@@ -28,6 +30,7 @@ module Variable ( Var
                 , Sub(..)
                 , Mul(..)
                 , Div(..)
+                , Function(..)
 ) where
 
 class Var v where
@@ -66,6 +69,8 @@ data Mul a b = Mul a b
 data Div a b = Div a b
     deriving (Show, Eq)
 
+data Function a = Function (Double -> Double) a
+
 infixl 6 :+:
 type a :+: b = Add a b
 infixl 6 :-:
@@ -74,6 +79,8 @@ infixl 7 :*:
 type a :*: b = Mul a b  -- TODO * has lower binding strength than
 infixl 7 :/:
 type a :/: b = Div a b
+infixr 0 :$:
+type f :$: a = a  -- A bit weird but here for completness purposes
 
 
 -- TODO check what operator order of these
@@ -86,6 +93,8 @@ a .* b = Mul a b
 infixl 7 ./
 a ./ b = Div a b
 
+infixr 0 .$
+f .$ a = Function f a
 
 instance (Var a, Var b) => Var (Add a b) where
     grab (Add a b) rows = (+) grabA grabB
@@ -107,13 +116,13 @@ instance (Var a, Var b) => Var (Div a b) where
         where grabA = grab a rows
               grabB = grab b rows
 
+instance (Var a) => Var (Function a) where
+    grab (Function f a) rows = f $ grab a rows
+
 instance Var Constant where
     grab (Constant f) _ = f
 instance Var Double where
     grab f _ = f
 
-
 instance Var Component where
     grab (Component n) rows = rows !! n
-
-

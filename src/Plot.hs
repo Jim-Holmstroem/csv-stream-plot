@@ -1,4 +1,5 @@
 module Plot ( Plot
+            , EmptyPlot(..)
 ) where
 
 import Graphics.Gloss.Data.Picture
@@ -10,3 +11,12 @@ import Graphics.Gloss.Data.Picture
 class Plot p where
     render :: p -> Picture
     append :: [Double] -> p -> p
+
+
+data EmptyPlot = EmptyPlot
+    deriving (Show, Eq)
+
+
+instance Plot EmptyPlot where
+    render _ = mempty
+    append _ p = p

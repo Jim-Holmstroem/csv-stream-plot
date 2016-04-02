@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules: Variable, Plot
+  exposed-modules: Variable, Plot, Core
   default-language:    Haskell2010
   build-depends: base >= 4.7 && < 5
                , gloss >= 1.9.4 && < 1.9.5
