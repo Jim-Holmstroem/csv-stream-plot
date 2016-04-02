@@ -34,6 +34,8 @@ module Expression ( Expression(..)
                 , Function(..)
 ) where
 
+-- TODO Does GADT fit for Expression?
+
 
 class Expression_ e where
     eval :: e -> [Double] -> Double
