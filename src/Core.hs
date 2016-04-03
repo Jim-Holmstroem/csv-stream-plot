@@ -5,18 +5,21 @@ module Core ( runPlot
             , module Expression
 ) where
 
-import Plot
-import Expression
-
 import Control.Applicative
 import Control.Concurrent (threadDelay, forkIO)
 import Control.Concurrent.MVar
 import Control.Monad
 import Data.Monoid ((<>), mconcat, mempty)
-import Graphics.Gloss.Interface.IO.Game
 
 import Text.Read
+import System.IO
+
 import Data.List.Split
+
+import Graphics.Gloss.Interface.IO.Game
+
+import Plot
+import Expression
 
 -- write down libraries (and versions) used
 -- gloss, split
@@ -28,37 +31,46 @@ import Data.List.Split
 -- the rest is moved out into the core
 
 
-type Readings = [[Float]]
+type Readings = [[Double]]
 
-readData :: MVar Readings -> IO ()
-readData readings = do
-    input <- getContents
+readData :: (Plot p) => MVar p -> IO ()
+readData plot = do
+    --input <- getContents
+
+    handle <- openFile "/dev/ttyUSB0" ReadMode -- TODO getArgs
+    input <- hGetContents handle
+
     let rows = tail $ lines input
 
-    mapM_ handle rows
+    mapM_ process rows
+    hClose handle
         where
-            handle row = save $ mapM (readMaybe :: String -> Maybe Float) $ splitOn "," row
+            process row = save $ mapM (readMaybe :: String -> Maybe Double) $ splitOn "," row
             save Nothing = return ()
-            save (Just values@(value:_)) = do
-                modifyMVar_ readings $ \readings-> return $ zipWith (:) values $ enforceDimension values readings
-                    where
-                        enforceDimension left [] = map (const []) left
-                        enforceDimension left right = right
+            save (Just []) = return ()
+            save (Just values) = do  -- TODO is modifyMVar the right thing todo here?
+                modifyMVar_ plot $ \plot-> return $ append values plot
+            --save (Just values) = do
+            --    modifyMVar_ readings $ \readings-> return $ zipWith (:) values $ enforceDimension values readings
+            --        where
+            --            enforceDimension left [] = map (const []) left
+            --            enforceDimension left right = right
 
 
-draw :: MVar Readings -> IO Picture
-draw readings = do
-    readReadings <- readMVar readings
+draw :: (Plot p) => MVar p -> IO Picture
+draw plot = do
+    readPlot <- readMVar plot -- TODO better name than readPlot/plot
 
-    return $ pictures $ renderVariable <$> readReadings
-        where renderVariable readReadingsVariable = graph readReadingsVariable <> start readReadingsVariable
-              graph readReadingsVariable = color white $ line $ zip [-400,-395..] (take 512 readReadingsVariable)
-              start [] = mempty
-              start xv@(x:_) = translate (-400) x $ color red $ circle lastVariance
-                where lastVariance = sqrt $ (sum $ map (\x->(x-lastMean)^2) lastReadings) / (max 1 lastLength)
-                      lastMean = (sum lastReadings) / lastLength
-                      lastLength = fromIntegral $ length lastReadings
-                      lastReadings = take 8 xv
+    return $ render readPlot
+--    return $ pictures $ renderVariable <$> readReadings
+--        where renderVariable readReadingsVariable = graph readReadingsVariable <> start readReadingsVariable
+--              graph readReadingsVariable = color white $ line $ zip [-400,-395..] (take 512 readReadingsVariable)
+--              start [] = mempty
+--              start xv@(x:_) = translate (-400) x $ color red $ circle lastVariance
+--                where lastVariance = sqrt $ (sum $ map (\x->(x-lastMean)^2) lastReadings) / (max 1 lastLength)
+--                      lastMean = (sum lastReadings) / lastLength
+--                      lastLength = fromIntegral $ length lastReadings
+--                      lastReadings = take 8 xv
 
 
 eventHandler :: Event -> world -> IO world
@@ -69,17 +81,21 @@ updateHandler :: Float -> world -> IO world
 updateHandler dt w = return w
 
 
+
+-- TODO Fix the bug (see below message)
+-- csv-stream-plot: /dev/ttyUSB0: hGetContents: invalid argument (invalid byte sequence)
+
 runPlot :: (Plot p) => p -> IO ()
 runPlot p = do
-    readings <- newMVar []
+    plot <- newMVar p
 
-    void $ forkIO $ readData readings
+    void $ forkIO $ readData plot -- TODO better name for readData
 
     playIO
         (InWindow "StreamPlotter" (1, 1) (512, 512)) -- display mode
         black -- bgcolor
         60 -- fps
-        readings -- :: world, initial state
+        plot -- :: world, initial state
         draw -- :: (world -> IO Picture), view
         eventHandler -- :: (Event -> world -> IO world), eventHandler
         updateHandler -- :: (Float -> world -> IO world), update

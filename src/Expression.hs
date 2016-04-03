@@ -16,8 +16,10 @@ module Expression ( Expression(..)
                 , x9
                 , x
                 , (.+)
+                , sumE
                 , (.-)
                 , (.*)
+                , prodE
                 , (./)
                 , (.$)
                 , (:+:)
@@ -35,6 +37,7 @@ module Expression ( Expression(..)
 ) where
 -- Tried to make Expression a GADT but wasn't able to make it do x0 .+ 1.0 nicely (x0 .+ c 1.0)
 -- I will use Existential types until it hits a wall (https://en.wikibooks.org/wiki/Haskell/GADT#Extending_the_language)
+
 
 class Expression_ e where
     eval :: e -> [Double] -> Double
@@ -106,9 +109,8 @@ type a :/: b = Div a b
 
 data Function a = Function (Double -> Double) a
 infixr 0 .$
-(.$), fmap :: (Expression_ e) => (Double -> Double) -> e -> Expression
+(.$) :: (Expression_ e) => (Double -> Double) -> e -> Expression
 f .$ a = Expression $ Function f a
-fmap = (.$)
 infixr 0 :$:
 type f :$: a = Function a
 
@@ -152,8 +154,8 @@ instance Expression_ Component where
     eval (Component n) rows = rows !! n
 
 
-sum :: [Expression] -> Expression
-sum = foldl (.+) zero
+sumE :: [Expression] -> Expression
+sumE = foldl (.+) zero
 
-prod :: [Expression] -> Expression
-prod = foldl (.*) one
+prodE :: [Expression] -> Expression
+prodE = foldl (.*) one
