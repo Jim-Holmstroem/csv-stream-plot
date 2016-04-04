@@ -14,6 +14,11 @@ cabal-version:       >=1.10
 
 
 library
+  ghc-options:
+    -Wall
+    -optc-O3
+    -optc-ffast-math
+    -threaded
   hs-source-dirs:      src
   exposed-modules: Expression, Plot, Core
   default-language:    Haskell2010

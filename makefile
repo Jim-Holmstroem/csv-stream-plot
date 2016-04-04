@@ -1,12 +1,8 @@
-main: main.hs
-	ghc --make -optc-O3 -optc-ffast-math -threaded main.hs
+build:
+	stack build
 
-clean:
-	rm *.o *.hi
+run:
+	stack exec csv-stream-plot -- /dev/ttyUSB0
 
-run: main
-	./main < /dev/ttyUSB0
-
-
-setupusb:
+setup:
 	stty -F /dev/ttyUSB0 115200 cs8 cread clocal
