@@ -15,6 +15,7 @@ import Expression
 -- TogglePlot Key [Plot], toggle between plots on keys
 -- KeyPlot (Map Key Plot), switch between plots on keys
 
+-- TODO how to get window dimenions in gloss?
 
 class Plot p where
     render :: p -> Picture
