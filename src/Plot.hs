@@ -34,7 +34,7 @@ data SimplePlot = SimplePlot [Expression] [[Double]]
 instance Plot SimplePlot where
     render (SimplePlot _ evaluations) = pictures $ renderEvaluation <$> evaluations
         where renderEvaluation evaluation = graph evaluation
-              graph evaluation = color white $ line $ zip [-400, -395..] (take 512 $ map realToFrac evaluation)
+              graph evaluation = color white $ line $ zip [-800, -795..] (take 256 $ map realToFrac evaluation)
     append values (SimplePlot exprs evaluations) = SimplePlot exprs $ zipWith (:) evaluation $ enforceDimension evaluation evaluations
         where
             evaluation = map (flip eval values) exprs

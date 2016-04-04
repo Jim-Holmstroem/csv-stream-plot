@@ -10,16 +10,19 @@ import Control.Concurrent.MVar
 import Control.Monad
 import Data.Monoid ((<>), mconcat, mempty)
 
-import Text.Read
+import Text.Read hiding (get)
 import System.IO
 import System.Environment
 
 import Data.List.Split
 
+import Graphics.UI.GLUT
 import Graphics.Gloss.Interface.IO.Game
 
 import Plot
 import Expression
+
+import Debug.Trace
 
 -- write down libraries (and versions) used
 -- gloss, split
@@ -60,6 +63,10 @@ readData filename plot = do
 draw :: (Plot p) => MVar p -> IO Picture
 draw plot = do
     readPlot <- readMVar plot -- TODO better name than readPlot/plot
+
+    s@(Size w h) <- get windowSize
+
+    traceIO $ show s
 
     return $ render readPlot
 --    return $ pictures $ renderVariable <$> readReadings
