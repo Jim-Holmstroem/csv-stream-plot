@@ -6,8 +6,6 @@ module Plot ( Plot
             , append
 ) where
 
-import Data.Monoid
-
 import Graphics.Gloss.Data.Picture
 import Graphics.Gloss.Data.Color
 
@@ -38,7 +36,8 @@ instance Plot SimplePlot where
         where
             evaluation = map (flip eval values) exprs
             enforceDimension left [] = map (const []) left
-            enforceDimension left right = right
+            enforceDimension _ right = right
 
 
+simplePlot :: [Expression] -> SimplePlot
 simplePlot exprs = SimplePlot exprs []

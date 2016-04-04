@@ -1,5 +1,5 @@
 build:
-	stack build
+	stack clean && stack build
 
 run:
 	stack exec csv-stream-plot -- /dev/ttyUSB0

@@ -5,8 +5,7 @@ module Core ( runPlot
             , module Expression
 ) where
 
-import Control.Applicative
-import Control.Concurrent (threadDelay, forkIO)
+import Control.Concurrent (forkIO)
 import Control.Concurrent.MVar
 import Control.Monad
 import Data.Monoid ((<>), mconcat, mempty)
@@ -50,7 +49,7 @@ readData filename plot = do
             save Nothing = return ()
             save (Just []) = return ()
             save (Just values) = do  -- TODO is modifyMVar the right thing todo here?
-                modifyMVar_ plot $ \plot-> return $ append values plot
+                modifyMVar_ plot $ \p -> return $ append values p
             --save (Just values) = do
             --    modifyMVar_ readings $ \readings-> return $ zipWith (:) values $ enforceDimension values readings
             --        where
