@@ -22,11 +22,13 @@ class Plot p where
     append :: [Double] -> p -> p
     -- TODO should the arguments be the other way around?
 
+
 data EmptyPlot = EmptyPlot
     deriving (Show, Eq)
 instance Plot EmptyPlot where
     render _ = mempty
     append _ p = p
+
 
 data SimplePlot = SimplePlot [Expression] [[Double]]
 instance Plot SimplePlot where
