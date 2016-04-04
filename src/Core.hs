@@ -13,6 +13,7 @@ import Data.Monoid ((<>), mconcat, mempty)
 
 import Text.Read
 import System.IO
+import System.Environment
 
 import Data.List.Split
 
@@ -33,11 +34,11 @@ import Expression
 
 type Readings = [[Double]]
 
-readData :: (Plot p) => MVar p -> IO ()
-readData plot = do
+readData :: (Plot p) => String -> MVar p -> IO ()
+readData filename plot = do
     --input <- getContents
 
-    handle <- openFile "/dev/ttyUSB0" ReadMode -- TODO getArgs
+    handle <- openFile filename ReadMode
     input <- hGetContents handle
 
     let rows = tail $ lines input
@@ -87,9 +88,10 @@ updateHandler dt w = return w
 
 runPlot :: (Plot p) => p -> IO ()
 runPlot p = do
+    filename <- head <$> getArgs
     plot <- newMVar p
 
-    void $ forkIO $ readData plot -- TODO better name for readData
+    void $ forkIO $ readData filename plot -- TODO better name for readData
 
     playIO
         (InWindow "StreamPlotter" (1, 1) (512, 512)) -- display mode
