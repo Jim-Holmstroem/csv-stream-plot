@@ -29,6 +29,8 @@ import Expression
 
 -- TODO think long and hard about having Plot have the class Plot_ thing and what it returns etc..
 
+-- TODO is there a way to clip so that a plot never renders outside of it's [-1,1]-square?
+
 class Plot_ p where
     render :: p -> Picture
     append :: [Double] -> p -> Plot  -- TODO FIXME is returning Plot here weird?
@@ -67,10 +69,12 @@ data VerticalSplit = VerticalSplit [Plot]
 instance Plot_ VerticalSplit where
     append values (VerticalSplit plots) = verticalSplit $ map (append values) plots
     render (VerticalSplit []) = blank
-    render (VerticalSplit plots) = pictures $ zipWith ($) translateSlices (map (scaleSlice . render) plots)
+    render (VerticalSplit plots) = splits <> (pictures $ zipWith ($) translateSlices (map (scaleSlice.render) plots))
         where nSlices = length plots
-              scaleSlice = scale (realToFrac nSlices) 1.0
-              translateSlices = map (`translate` 0.0) [0.0,2.0..]
+              sliceWidth = 2.0/realToFrac nSlices
+              scaleSlice = scale (sliceWidth/2) 1.0
+              translateSlices = map (`translate` 0.0) [(-1.0+sliceWidth/2),(-1.0+3*sliceWidth/2)..]
+              splits = color (greyN 0.8) $ pictures [ line [(-1.0+(realToFrac n)*sliceWidth,-1),(-1.0+(realToFrac n)*sliceWidth,1)] | n <- [0..(nSlices-1)]]
 
 verticalSplit :: [Plot] -> Plot
 verticalSplit = Plot . VerticalSplit
