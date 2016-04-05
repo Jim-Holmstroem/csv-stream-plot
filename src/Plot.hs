@@ -65,6 +65,7 @@ ordinaryPlot :: [Expression] -> Plot
 ordinaryPlot exprs = Plot $ OrdinaryPlot exprs $ map (const []) exprs
 
 
+-- TODO deriving Show?
 data VerticalSplit = VerticalSplit [Plot]
 instance Plot_ VerticalSplit where
     append values (VerticalSplit plots) = verticalSplit $ map (append values) plots
@@ -78,6 +79,12 @@ instance Plot_ VerticalSplit where
 
 verticalSplit :: [Plot] -> Plot
 verticalSplit = Plot . VerticalSplit
+
+
+data HorizontalSplit = HorizontalSplit [Plot]
+-- TODO how should you cap from rendering values higher and lower?
+
+
 
 --    return $ pictures $ renderVariable <$> readReadings
 --        where renderVariable readReadingsVariable = graph readReadingsVariable <> start readReadingsVariable
