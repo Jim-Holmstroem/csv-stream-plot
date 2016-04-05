@@ -16,7 +16,7 @@ import System.Environment
 
 import Data.List.Split
 
-import Graphics.UI.GLUT
+import Graphics.UI.GLUT (Size(..), get, windowSize)
 import Graphics.Gloss.Interface.IO.Game
 
 import Plot
@@ -36,74 +36,47 @@ import Debug.Trace
 
 type Readings = [[Double]]
 
-readData :: (Plot p) => String -> MVar p -> IO ()
-readData filename plot = do
-    --input <- getContents
 
-    handle <- openFile filename ReadMode
-    input <- hGetContents handle
+collectData :: String -> MVar Plot -> IO ()
+collectData filename plot = do
+    withFile filename ReadMode $ \handle -> do
+        hSetEncoding handle char8 -- FIX Fixes (probably) the bug: hGetContents: invalid argument (invalid byte sequence). char8 allows to read and write all byte sequences. The garbage it potentially reads in the start will be thrown away anyway it just needs to be readable.
+        rows <- tail . lines <$> hGetContents handle
 
-    let rows = tail $ lines input
-
-    mapM_ process rows
-    hClose handle
-        where
-            process row = save $ mapM (readMaybe :: String -> Maybe Double) $ splitOn "," row
-            save Nothing = return ()
-            save (Just []) = return ()
-            save (Just values) = do  -- TODO is modifyMVar the right thing todo here?
-                modifyMVar_ plot $ \p -> return $ append values p
-            --save (Just values) = do
-            --    modifyMVar_ readings $ \readings-> return $ zipWith (:) values $ enforceDimension values readings
-            --        where
-            --            enforceDimension left [] = map (const []) left
-            --            enforceDimension left right = right
+        mapM_ process rows
+            where
+                process row = save $ mapM (readMaybe :: String -> Maybe Double) $ splitOn "," row
+                save Nothing = return ()
+                save (Just []) = return ()
+                save (Just values) = do
+                    modifyMVar_ plot $ return . (append values)
 
 
-draw :: (Plot p) => MVar p -> IO Picture
-draw plot = do
-    readPlot <- readMVar plot -- TODO better name than readPlot/plot
-
-    s@(Size w h) <- get windowSize
-
-    traceIO $ show s
-
-    return $ render readPlot
---    return $ pictures $ renderVariable <$> readReadings
---        where renderVariable readReadingsVariable = graph readReadingsVariable <> start readReadingsVariable
---              graph readReadingsVariable = color white $ line $ zip [-400,-395..] (take 512 readReadingsVariable)
---              start [] = mempty
---              start xv@(x:_) = translate (-400) x $ color red $ circle lastVariance
---                where lastVariance = sqrt $ (sum $ map (\x->(x-lastMean)^2) lastReadings) / (max 1 lastLength)
---                      lastMean = (sum lastReadings) / lastLength
---                      lastLength = fromIntegral $ length lastReadings
---                      lastReadings = take 8 xv
-
+draw :: MVar Plot -> IO Picture
+draw plotState = do
+    plot <- readMVar plotState
+    (Size w h) <- get windowSize
+    let scaleNormalized = scale ((realToFrac w)/2) ((realToFrac h)/2)
+    return $ scaleNormalized $ render plot
 
 eventHandler :: Event -> world -> IO world
-eventHandler _ w = return w
-
+eventHandler = const return
 
 updateHandler :: Float -> world -> IO world
-updateHandler dt w = return w
+updateHandler = const return
 
-
-
--- TODO Fix the bug (see below message)
--- csv-stream-plot: /dev/ttyUSB0: hGetContents: invalid argument (invalid byte sequence)
-
-runPlot :: (Plot p) => p -> IO ()
-runPlot p = do
+runPlot :: String -> Plot -> IO ()
+runPlot name p = do
     filename <- head <$> getArgs
     plot <- newMVar p
 
-    void $ forkIO $ readData filename plot -- TODO better name for readData
+    void $ forkIO $ collectData filename plot
 
     playIO
-        (InWindow "StreamPlotter" (1, 1) (512, 512)) -- display mode
-        black -- bgcolor
-        60 -- fps
-        plot -- :: world, initial state
-        draw -- :: (world -> IO Picture), view
-        eventHandler -- :: (Event -> world -> IO world), eventHandler
-        updateHandler -- :: (Float -> world -> IO world), update
+        (InWindow name (1, 1) (512, 512))
+        black
+        60
+        plot
+        draw
+        eventHandler
+        updateHandler
